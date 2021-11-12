@@ -11,20 +11,20 @@ public class Entity {
     protected int y;
     protected int width;
     protected int height;
+    private BufferedImage sprite;
 
-    public static BufferedImage sprite = Xadrez.spritesheet.getSprite(0*64,0*64,64,64);
-    public static BufferedImage peaoBranco = Xadrez.spritesheet.getSprite(0*64,0*64,64,64);;
-    public static BufferedImage peaoPreto = Xadrez.spritesheet.getSprite(0*64,1*64,64,64);;
-    public static BufferedImage torreBranca = Xadrez.spritesheet.getSprite(1*64,0*64,64,64);;
-    public static BufferedImage torrePreta = Xadrez.spritesheet.getSprite(1*64,1*64,64,64);;
-    public static BufferedImage cavaloBranco = Xadrez.spritesheet.getSprite(2*64,0*64,64,64);;
-    public static BufferedImage cavaloPreto = Xadrez.spritesheet.getSprite(2*64,1*64,64,64);;
-    public static BufferedImage bispoBranco = Xadrez.spritesheet.getSprite(3*64,0*64,64,64);;
-    public static BufferedImage bispoPreto = Xadrez.spritesheet.getSprite(3*64,1*64,64,64);;
-    public static BufferedImage rainhaBranca = Xadrez.spritesheet.getSprite(4*64,0*64,64,64);;
-    public static BufferedImage rainhaPreta = Xadrez.spritesheet.getSprite(4*64,1*64,64,64);;
-    public static BufferedImage reiBranco = Xadrez.spritesheet.getSprite(5*64,0*64,64,64);;
-    public static BufferedImage reiPreto = Xadrez.spritesheet.getSprite(5*64,1*64,64,64);;
+//    public static BufferedImage peaoBranco = Xadrez.spritesheet3.getSprite(0, 0,64,64);
+//    public static BufferedImage peaoPreto = Xadrez.spritesheet3.getSprite(0, 63,64,64);
+//    public static BufferedImage torreBranca = Xadrez.spritesheet3.getSprite(63, 0,64,64);
+//    public static BufferedImage torrePreta = Xadrez.spritesheet3.getSprite(63, 63,64,64);
+//    public static BufferedImage cavaloBranco = Xadrez.spritesheet3.getSprite(127, 0,64,64);
+//    public static BufferedImage cavaloPreto = Xadrez.spritesheet3.getSprite(127, 63,64,64);
+//    public static BufferedImage bispoBranco = Xadrez.spritesheet3.getSprite(191, 0,64,64);
+//    public static BufferedImage bispoPreto = Xadrez.spritesheet3.getSprite(191, 63,64,64);
+//    public static BufferedImage rainhaBranca = Xadrez.spritesheet3.getSprite(255, 0,64,64);
+//    public static BufferedImage rainhaPreta = Xadrez.spritesheet3.getSprite(255, 63,64,64);
+//    public static BufferedImage reiBranco = Xadrez.spritesheet3.getSprite(319, 0,64,64);
+//    public static BufferedImage reiPreto = Xadrez.spritesheet3.getSprite(319, 63,64,64);
 
     public Entity(int x, int y, int width, int height, BufferedImage sprite) {
         this.x = x;
