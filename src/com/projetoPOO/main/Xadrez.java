@@ -8,7 +8,13 @@ import com.projetoPOO.logic.Jogo;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -44,12 +50,52 @@ public class Xadrez extends Canvas implements KeyListener, MouseListener, Runnab
     //Criacao e configuracao da janela do jogo.
     public void iniciaJanela(){
         frame = new JFrame("Checkers!");
+        JMenuBar barraMenu = new JMenuBar();
+        
+        iniciaMenuBar(barraMenu);
+        frame.setJMenuBar(barraMenu);
+
         frame.add(this);
         frame.setResizable(false);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+    }
+
+    private void iniciaMenuBar(JMenuBar menu) {
+        JMenu fileMenu = new JMenu("Arquivo");
+        //Botao de Carregar
+        JMenuItem openFEN = new JMenuItem("Carregar Jogo");
+        ActionListener acaoOpen = new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                System.out.println("implementar Carregar");
+            }
+        };
+        openFEN.addActionListener(acaoOpen); 
+        //Botao de Salvar
+        JMenuItem saveFEN = new JMenuItem("Salvar Jogo");
+        ActionListener acaoSave = new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                System.out.println("implementar Salvar");
+            }
+        };
+        saveFEN.addActionListener(acaoSave); 
+        //Botao de Sair
+        JMenuItem exit = new JMenuItem("Sair");
+        ActionListener acaoSair = new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                System.exit(0);;
+            }
+        };
+        exit.addActionListener(acaoSair); 
+        fileMenu.add(openFEN);
+        fileMenu.add(saveFEN);
+        fileMenu.add(exit);
+        menu.add(fileMenu);
     }
 
     // Metodo principal.
