@@ -24,7 +24,7 @@ public class Bispo extends Peca {
             Movimento move = new Movimento(this.getPosicao(), Tabuleiro.getCasa(lin, col), this);
             moveValido.add(move);
             lin++;
-            col++;;
+            col++;
         }
         //captura
         if(lin < 8 && col < 8 && eInimigo(this.getPosicao().getPeca(), Tabuleiro.getCasa(lin, col).getPeca())){

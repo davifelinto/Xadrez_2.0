@@ -31,13 +31,22 @@ public class Tabuleiro {
     public static void setCasa(Casa peca, int lin, int col) {
         Tabuleiro.casa[lin][col] = peca;
     }
-
+    public static void setSetPecas(List<Peca> pecas, boolean cor_Branca) {
+        if(cor_Branca){
+            Tabuleiro.pecasBrancas = pecas;
+        }else{
+            Tabuleiro.pecasPretas = pecas;
+        }
+    }
     //Metodos
     public static void carregaTabuleiro(String n){
         char notacao[] = n.toCharArray();
         boolean flag = true;
         int col = 0, lin = 0;
-
+        ControlaJogo.setRoque_Rei_b(false);
+        ControlaJogo.setRoque_Dama_b(false);
+        ControlaJogo.setRoque_Rei_p(false);
+        ControlaJogo.setRoque_Dama_p(false);
         for(char i : notacao){
             if(flag){
                 if(Character.isLetter(i)){
@@ -131,7 +140,12 @@ public class Tabuleiro {
                     s = s + Tabuleiro.getCasa(i, j).getPeca();
                 }
                 else if(Tabuleiro.getCasa(i, j).getPeca() == ' '){
-                    s = s + '1';
+                    if(Character.isDigit(s.charAt(s.length() - 1))){
+                        char[] sChar = s.toCharArray();
+                        sChar[s.length() - 1] = (char) (s.charAt(s.length() - 1) + 1);
+                        s = String.valueOf(sChar);
+                    }else
+                        s = s + '1';
                 }
                 Tabuleiro.getCasa(i, j).getPeca();
             }
@@ -193,16 +207,6 @@ public class Tabuleiro {
             getSetPecas(true).add(p);
         else
             getSetPecas(false).add(p);
-    }
-    public static void limpaTela (){
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    }
-    public static void limpaMovimentos(){
-        for(int i = 0; i < 8; i++)
-            for(int j = 0; j < 8; j++)
-                if(Tabuleiro.getCasa(i, j).getPeca() == '.')
-                    Tabuleiro.getCasa(i, j).setPeca(' ');
     }
     public static void imprimeTabuleiro(){
         for(int i = 0; i < 8; i++){

@@ -1,6 +1,6 @@
 package com.projetoPOO.logic;
 
-import com.projetoPOO.logic.Pecas.Peao;
+import com.projetoPOO.logic.Pecas.*;
 
 public class Movimento {
 
@@ -51,7 +51,7 @@ public class Movimento {
         if(m.getPecaCapturada() == null){//Movimento Simples
             if(!(m.getPecaMovimentada() instanceof Peao))
                 notacao += Tabuleiro.retornaPeca(m.pecaMovimentada.getPosicao().getPeca());
-            //evitar ambiguidade
+            notacao += evitaAmb(m);
             notacao += (char)(m.getCasaDestino().getColuna() + 97);
             notacao += converterLinha(m.getCasaDestino().getLinha());
         }else if(m.getPecaCapturada().isCor_Branca() == m.getPecaMovimentada().isCor_Branca()){//Roque
@@ -62,46 +62,129 @@ public class Movimento {
             if(m.getPecaMovimentada() instanceof Peao)  notacao += (char)(m.getCasaInicial().getColuna() + 97);
             else notacao += Tabuleiro.retornaPeca(m.pecaMovimentada.getPosicao().getPeca());
             notacao += "x";
-            //evitar ambiguidade
+            notacao += evitaAmb(m);
             notacao += (char)(m.getCasaDestino().getColuna() + 97);
-            notacao += converterLinha(m.getCasaDestino().getLinha());;
+            notacao += converterLinha(m.getCasaDestino().getLinha());
         }
         return notacao;
     }
     private int converterLinha(int i) {
         return 8-i;
     }
-}
-/*if(m.pecaMovimentada instanceof Torre || m.pecaMovimentada instanceof Dama){
-                Peca ambigua = null;
-                for(int i = 0; i < 8; i++){
-                    if(Tabuleiro.getCasa(m.getCasaDestino().getLinha(), i).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
-                    && Tabuleiro.getCasa(m.getCasaDestino().getLinha(), i).getObj_peca() != m.pecaMovimentada
-                    ){
-                        ambigua = Tabuleiro.getCasa(m.getCasaDestino().getLinha(), i).getObj_peca();
-                        break;
-                    }
-                    if(Tabuleiro.getCasa(i, m.getCasaInicial().getColuna()).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
-                    && Tabuleiro.getCasa(m.getCasaDestino().getLinha(), i).getObj_peca() != m.pecaMovimentada){
-                        ambigua = Tabuleiro.getCasa(i, m.getCasaInicial().getColuna()).getObj_peca();
-                        break;
-                    }
+    
+public String evitaAmb(Movimento m){
+    String coluna = "", linha = "";
+    Peca[] ambigua = new Peca[9];
+    int cont = 0;
+    if(m.pecaMovimentada instanceof Cavalo){
+        int[] col_c = {2, 1, -1, -2,-2, -1, 1, 2};
+        int[] lin_c = {1, 2, 2, 1, -1, -2,-2, -1};
+        for(int i = 0; i < 8; i++){
+            int lin = m.getCasaDestino().getLinha() + lin_c[i];
+            int col = m.getCasaDestino().getColuna() + col_c[i];
+            if(col < 8 && col >= 0 && lin < 8 && lin >= 0){
+                if(m.pecaMovimentada.getPosicao().getPeca() == Tabuleiro.getCasa(lin, col).getPeca()
+                && m.pecaMovimentada != Tabuleiro.getCasa(lin, col).getObj_peca()){
+                    ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+                    cont++;
                 }
-                if(ambigua != null){
-                    if(m.pecaMovimentada.getPosicao().getLinha() == ambigua.getPosicao().getLinha()) 
-                        notacao += (char)m.getCasaInicial().getLinha() + 1;
-                    else 
-                        notacao += (char)m.getCasaInicial().getLinha() + 1;
-                }  
-            }  
-            if(m.pecaMovimentada instanceof Bispo || m.pecaMovimentada instanceof Dama){
-                Peca ambigua = null;
-                int col = m.getCasaDestino().getColuna();
-                int lin = m.getCasaDestino().getLinha();
-                if(ambigua != null){
-                    if(m.pecaMovimentada.getPosicao().getLinha() == ambigua.getPosicao().getLinha()) 
-                        notacao += (char)m.getCasaInicial().getLinha() + 1;
-                    else 
-                        notacao += (char)m.getCasaInicial().getLinha() + 1;
-                } 
-            }*/
+            }
+        }
+    }else
+    if(m.pecaMovimentada instanceof Torre || m.pecaMovimentada instanceof Dama){
+        int col = m.getCasaDestino().getColuna();
+        int lin = m.getCasaDestino().getLinha()+1;
+        while(lin < 8 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            lin++;
+        }
+        if(lin < 8 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        col = m.getCasaDestino().getColuna()+1;
+        lin = m.getCasaDestino().getLinha();
+        while(col < 8 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            col++;
+        }
+        if(col < 8 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        col = m.getCasaDestino().getColuna();
+        lin = m.getCasaDestino().getLinha()-1;
+        while(lin >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            lin--;
+        }
+        if(lin >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        col = m.getCasaDestino().getColuna()-1;
+        lin = m.getCasaDestino().getLinha();
+        while(col >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            col--;
+        }
+        if(col >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+    }else
+    if(m.pecaMovimentada instanceof Bispo || m.pecaMovimentada instanceof Dama){
+        int col = m.getCasaDestino().getColuna()+1;
+        int lin = m.getCasaDestino().getLinha()+1;
+        while(lin < 8 && col < 8 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            lin++;
+            col++;
+        }
+        if(lin < 8 && col < 8 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        col = m.getCasaDestino().getColuna()  - 1; lin = m.getCasaDestino().getLinha() - 1;
+        while(lin >= 0 && col >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            col--;
+            lin--;
+        }
+        if(lin >= 0 && col >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        col = m.getCasaDestino().getColuna()  - 1; lin = m.getCasaDestino().getLinha() + 1;
+        while(lin < 8 && col >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            col--;
+            lin++;
+        }
+        if(lin < 8 && col >= 0 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        col = m.getCasaDestino().getColuna()  + 1; lin = m.getCasaDestino().getLinha() - 1;
+        while(lin >= 0 && col < 8 && Tabuleiro.getCasa(lin, col).getPeca() == ' '){
+            col++;
+            lin--;
+        }
+        if(lin >= 0 && col < 8 && Tabuleiro.getCasa(lin, col).getPeca() == m.pecaMovimentada.getPosicao().getPeca()
+        && Tabuleiro.getCasa(lin, col).getObj_peca() != m.pecaMovimentada){
+            ambigua[cont] = Tabuleiro.getCasa(lin, col).getObj_peca();
+            cont++;
+        }
+        
+    }
+    for(int i = 0; i < cont; i++){
+        if(m.getCasaInicial().getLinha() == ambigua[i].getPosicao().getLinha())
+            coluna = "" + (char)(m.getCasaInicial().getColuna() + 97);
+        else if(m.getCasaInicial().getColuna() == ambigua[i].getPosicao().getColuna())
+            linha = "" + converterLinha(m.getCasaInicial().getLinha());
+        else 
+            coluna = "" + (char)(m.getCasaInicial().getColuna() + 97);
+    }
+    return coluna+linha;
+}            
+}

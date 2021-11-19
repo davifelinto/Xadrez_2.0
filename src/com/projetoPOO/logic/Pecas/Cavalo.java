@@ -36,25 +36,3 @@ public class Cavalo extends Peca {
         return moveValido;
     }
 }
-/*
-function knight_movement(position_letter, position_number, color){
-	tam = 0;
-	//movimentos possiveis de se realizar indo pra col_c[i] e pra lin_c[i]
-	col_c[0] = 2; col_c[1] = 1; col_c[2] = -1; col_c[3] = -2; col_c[4] = -2; col_c[5] = -1; col_c[6] = 1; col_c[7] = 2;
-	lin_c[0] = 1; lin_c[1] = 2; lin_c[2] = 2; lin_c[3] = 1; lin_c[4] = -1; lin_c[5] = -2; lin_c[6] = -2; lin_c[7] = -1;
-	for(i = 0; i < 8; i++){
-		if(position_letter + col_c[i] < 9 && position_letter + col_c[i] > 0 && position_number + lin_c[i] < 9
-		&& position_number + lin_c[i] > 0){
-			if(pos[position_letter+col_c[i]][position_number+lin_c[i]].have_a_piece && pos[position_letter+col_c[i]][position_number+lin_c[i]].piece.cor != color){
-				allow[tam] = pos[position_letter+col_c[i]][position_number + lin_c[i]];
-				tam++;
-			}else
-			//capturar outra peca
-			if(!pos[position_letter+col_c[i]][position_number+lin_c[i]].have_a_piece){
-				allow[tam] = pos[position_letter+col_c[i]][position_number + lin_c[i]];
-				tam++;
-			}
-		}
-	}
-}
-*/

@@ -10,6 +10,7 @@ import com.projetoPOO.logic.Movimento;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
@@ -19,9 +20,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,7 @@ public class Xadrez2 extends Canvas implements Runnable {
     public static JPanel boardAndPieces;
     public static JTextArea textoMovimentos;
     public static JCheckBoxMenuItem girarAutomaticamente;
+    public static JLabel nomeJogadores;
     private static Thread thread;
     private boolean isRunning = false;
     private static final int width = 800;
@@ -57,7 +62,8 @@ public class Xadrez2 extends Canvas implements Runnable {
     private Peca reiAtual = procuraRei(setdePecas);
     private boolean girar = false;
     public static MyInterface temaPecas;
-
+    private boolean mouseDown = false;
+    private char escolha = 'P';
     @FunctionalInterface
     public interface MyInterface{
         Image[] someMethod(int tam);
@@ -123,6 +129,7 @@ public class Xadrez2 extends Canvas implements Runnable {
                             frame.validate();
                             gameStarted = true;
                         }else{
+                            nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
                             textoMovimentos.setText("");
                             ControlaJogo.setPgn(new ArrayList<>());
                         }
@@ -165,12 +172,20 @@ public class Xadrez2 extends Canvas implements Runnable {
         ActionListener acaoOpen = new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e){
+                //Zera o set antigo de peças para não duplicar as peças
+                Tabuleiro.setSetPecas(new ArrayList<>(), true);
+                Tabuleiro.setSetPecas(new ArrayList<>(), false); 
                 try {
                     Tabuleiro.carregaTabuleiro(Tabuleiro.leTabuleiro());
                 } catch (FileNotFoundException ex) {
                     ex.printStackTrace();
                 }
-                System.out.println("Carregar - não ta reconhecendo a vez das pretas");
+                setdePecas = Tabuleiro.getSetPecas(ControlaJogo.isTurno_Branco());
+                reiAtual = procuraRei(setdePecas);
+                isCheque = reiAtual.verificaAtaque();
+                textoMovimentos.setText("");
+                //Carregar também o nome dos jogadores e o pgn (lista de movimentos)
+                System.out.println("Carregar");
             }
         };
         openFEN.addActionListener(acaoOpen); 
@@ -184,8 +199,9 @@ public class Xadrez2 extends Canvas implements Runnable {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
+                //Salvar também o nome dos jogadores e o pgn (lista de movimentos)
                 System.out.println("implementado Salvar");
-            }
+            }   
         };
         saveFEN.addActionListener(acaoSave); 
         //Botao de Sair
@@ -254,7 +270,8 @@ public class Xadrez2 extends Canvas implements Runnable {
     }
     private void imprimeTabuleiro() {
         JPanel paneTabuleiro = new JPanel();
-        paneTabuleiro.add(new JLabel(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome()));
+        nomeJogadores = new JLabel(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
+        paneTabuleiro.add(nomeJogadores);
         paneTabuleiro.setLayout(new BoxLayout(paneTabuleiro, BoxLayout.PAGE_AXIS));
         paneTabuleiro.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         boardAndPieces = new JPanel(){
@@ -311,13 +328,13 @@ public class Xadrez2 extends Canvas implements Runnable {
                                     g.drawImage(Tabuleiro.retornaPeca(busca.getPeca(), quadrado), 
                                     pos_col, pos_lin, this);
                                 }
-                                else if(isCheque && busca.getObj_peca() == reiAtual){
-                                    g.drawImage(Tabuleiro.retornaPeca(busca.getPeca(), quadrado)
-                                    ,pos_col, pos_lin, Color.red, this);
-                                }
                                 else{
                                     g.drawImage(Tabuleiro.retornaPeca(busca.getPeca(), quadrado)
                                     ,pos_col, pos_lin, Color.gray, this);
+                                }
+                                if(isCheque && busca.getObj_peca() == reiAtual){
+                                    g.drawImage(Tabuleiro.retornaPeca(busca.getPeca(), quadrado)
+                                    ,pos_col, pos_lin, Color.red, this);
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -325,6 +342,17 @@ public class Xadrez2 extends Canvas implements Runnable {
                         }
                     }
                     white = !white;
+                }
+                //Desenha peça arrastada
+                if(mouseDown && pecaSelecionada != null){
+                    int x = (int) MouseInfo.getPointerInfo().getLocation().getX()-330;
+                    int y = (int) MouseInfo.getPointerInfo().getLocation().getY()-175;    
+                    try {
+                        g.drawImage(Tabuleiro.retornaPeca(pecaSelecionada.getPosicao().getPeca(), quadrado), 
+                        x, y, null);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             } 
         };
@@ -379,7 +407,13 @@ public class Xadrez2 extends Canvas implements Runnable {
     private void iniciaMouseListener(){
         boardAndPieces.addMouseMotionListener(new MouseMotionListener() {
             @Override
-            public void mouseDragged(MouseEvent e) {}
+            public void mouseDragged(MouseEvent e) {                
+                try {
+                    mouseAtual = getCasa(e.getX(), e.getY());  
+                } catch (Exception exc) {
+                    mouseAtual = null;
+                }
+            }
             @Override
             public void mouseMoved(MouseEvent e) {
                 try {
@@ -417,9 +451,38 @@ public class Xadrez2 extends Canvas implements Runnable {
                 }
             }
             @Override
-            public void mousePressed(MouseEvent e) {}
+            public void mousePressed(MouseEvent e) {
+                if(pecaSelecionada != null && pecaSelecionada == mouseAtual.getObj_peca()){}
+                else if(casasValidas != null && mouseAtual != null && casasValidas.contains(mouseAtual)){}
+                else{
+                    try{//tenta selecionar
+                        pecaSelecionada = mouseAtual.getObj_peca();
+                        if(pecaSelecionada == null){
+                            pecaSelecionada = null;
+                            moveValido = null;
+                            casasValidas = null;
+                        }
+                    }catch(Exception exc){
+                        pecaSelecionada = null;
+                        moveValido = null;
+                        casasValidas = null;
+                    }
+                }
+                mouseDown = true;
+            }
             @Override
-            public void mouseReleased(MouseEvent e) {}
+            public void mouseReleased(MouseEvent e) {
+                if(pecaSelecionada != null && pecaSelecionada == mouseAtual.getObj_peca()){
+                    //desseleciona se clicar de novo na peça
+                    pecaSelecionada = null;
+                    moveValido = null;
+                    casasValidas = null;
+                }else if(casasValidas != null && mouseAtual != null && casasValidas.contains(mouseAtual)){
+                    //inicia um Movimento se a casa for válida
+                    iniciaMovimento = true;
+                }
+                mouseDown = false;
+            }
             @Override
             public void mouseEntered(MouseEvent e){}
             @Override
@@ -487,6 +550,7 @@ public class Xadrez2 extends Canvas implements Runnable {
             }
         }
         if(iniciaMovimento){
+            String cheque = "";
             iniciaMovimento = false;
             for(Movimento teste : moveValido){
                 if(teste.getCasaDestino() == mouseAtual){
@@ -501,7 +565,6 @@ public class Xadrez2 extends Canvas implements Runnable {
             setdePecas = Tabuleiro.getSetPecas(ControlaJogo.isTurno_Branco());
             reiAtual = procuraRei(setdePecas);
             isCheque = reiAtual.verificaAtaque();
-            String cheque = "";
             if(isCheque){//Se o seu rei estiver em cheque verifica se está em mate
                 for(Peca pecaVerifica : setdePecas){
                     moveValido = pecaVerifica.filtraLista(reiAtual);
@@ -510,25 +573,94 @@ public class Xadrez2 extends Canvas implements Runnable {
                 }
                 if(moveValido.isEmpty()){
                     System.out.println("Chequemate");
+                    //perguntar se deseja jogar de novo
                     isRunning = false;
                 }
                 cheque += "+";
             }
-            //Adiciona movimento na lista
-            Movimento movimento = ControlaJogo.getPgn().get(ControlaJogo.getPgn().size() - 1);
-            if(!ControlaJogo.isTurno_Branco()){
-                textoMovimentos.append(movimento.getNotacao(movimento) + cheque + "\t");
-            }else{
-                textoMovimentos.append(movimento.getNotacao(movimento) + cheque + "\n");
+            if(escolha != 0){
+                if(!ControlaJogo.isTurno_Branco()){
+                    textoMovimentos.append(cheque + "\t");
+                }else{
+                    textoMovimentos.append(cheque + "\n");
+                }
             }
         }
-        //verificar empate
+        /**verificar empate
+        if(!isCheque){
+            //Empate por afogamento
+            for(Peca pecaVerifica : setdePecas){
+                moveValido = pecaVerifica.filtraLista(reiAtual);
+                if(!moveValido.isEmpty())
+                    break;
+            }
+            if(moveValido.isEmpty()){
+                System.out.println("Empate");
+                //perguntar se deseja jogar de novo
+                isRunning = false;
+            }
+            //Empate por insuficiencia material
+            //Regra dos 50 movimentos
+            if(getPgn().size() > 110){
+                int i = 0, atual = 0;
+                for(Movimento move : getPgn()){
+                    if(move.getPecaCapturada() == null || //nao capturei nenhuma peca
+                    move.getPecaCapturada().isCor_Branca() == move.getPecaMovimentada().isCor_Branca() ||
+                    !(move.getPecaMovimentada() instanceof Peao) //e não movi nenhum peao){
+                        i++;
+                    }if(i >= 100 || getPgn().size() - atual < 100){
+                        break;
+                    }else{
+                        i = 0;
+                    }
+                    atual++;
+                }
+                if(i >= 100){
+                    System.out.println("Empate");
+                    //perguntar se deseja jogar de novo
+                    isRunning = false;
+                }
+            }
+        } */
+    
     }
     public void movimenta(Movimento move){
+        boolean promocao = false;
         Peca peca = pecaSelecionada;
-        peca.setPosicao(move.getCasaDestino());
         if(peca instanceof Peao && move.getCasaDestino().getLinha() == ((Peao) peca).getLinhaPromocao()){
-            //promoção;
+            janelaEscolha();
+            if(escolha == 0)
+                return;
+            promocao = true;
+        }
+        //Adiciona movimento na lista
+        textoMovimentos.append(move.getNotacao(move));
+        //Move
+        peca.setPosicao(move.getCasaDestino());
+        if(promocao){
+            int lin = move.getCasaDestino().getLinha();
+            int col = move.getCasaDestino().getColuna();
+            if(!pecaSelecionada.isCor_Branca())
+                escolha = Character.toLowerCase(escolha);
+            switch(escolha){
+                case 'Q':
+                    peca = new Dama(pecaSelecionada.isCor_Branca(), lin, col);
+                    break;
+                case 'B':
+                    peca = new Bispo(pecaSelecionada.isCor_Branca(), lin, col);
+                    break;
+                case 'N':
+                    peca = new Cavalo(pecaSelecionada.isCor_Branca(), lin, col);
+                    break;
+                case 'R':
+                    peca = new Torre(pecaSelecionada.isCor_Branca(), lin, col);
+                    break;
+            }
+            Tabuleiro.getCasa(lin, col).setPeca(escolha);
+            move.getCasaInicial().setPeca(escolha);
+            setdePecas.remove(pecaSelecionada);
+            setdePecas.add(peca);
+            textoMovimentos.append("=" + Tabuleiro.retornaPeca(peca.getPosicao().getPeca()));
         }else
         if(peca instanceof Torre){
             if(peca.isCor_Branca()){
@@ -585,13 +717,55 @@ public class Xadrez2 extends Canvas implements Runnable {
         ControlaJogo.adicionarMovimento(move);
         ControlaJogo.setTurno_Branco(!ControlaJogo.isTurno_Branco());
     }
-    public void tick(){
-        /*for(int i = 0; i < entities.size(); i++){
-            Entity e = entities.get(i);
-            if(e instanceof Jogador) {
-                // tick do jogador
+    public void janelaEscolha(){
+        JDialog jdialog = new JDialog(frame, true);
+        jdialog.setSize(300, 100);
+        jdialog.setLayout(new FlowLayout());
+        jdialog.setBounds(new Rectangle(300, 110));
+        int x = (int) MouseInfo.getPointerInfo().getLocation().getX()-155;
+        int y = (int) MouseInfo.getPointerInfo().getLocation().getY()-50;
+        jdialog.setLocation(x, y);
+        Point pt = new Point(jdialog.getLocation());
+        SwingUtilities.convertPointToScreen(pt, jdialog);
+        ButtonGroup group = new ButtonGroup();
+        JRadioButton dama = new JRadioButton("dama");
+        JRadioButton torre = new JRadioButton("torre");
+        JRadioButton bispo = new JRadioButton("bispo");
+        JRadioButton cavalo = new JRadioButton("cavalo");
+        group.add(dama);
+        group.add(torre);
+        group.add(bispo);
+        group.add(cavalo);
+        escolha = 0;
+        JButton confirmar = new JButton("Confirmar");
+        confirmar.addActionListener(new ActionListener(){
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if(!group.isSelected(null)){
+                        if(dama.isSelected()){
+                            escolha = 'Q';
+                        }
+                        if(torre.isSelected()){
+                            escolha = 'R';
+                        }
+                        if(bispo.isSelected()){
+                            escolha = 'B';
+                        }
+                        if(cavalo.isSelected()){
+                            escolha = 'N';
+                        }
+                        jdialog.dispose();
+                    }
+                };
             }
-            e.tick();
-        }*/
+        );
+        jdialog.add(dama);
+        jdialog.add(torre);
+        jdialog.add(bispo);
+        jdialog.add(cavalo);
+        jdialog.add(confirmar);
+        jdialog.setResizable(false);
+        jdialog.setVisible(true);
     }
+    public void tick(){}
 }
