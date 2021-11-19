@@ -627,6 +627,7 @@ public class Xadrez2 extends Canvas implements Runnable {
     public void movimenta(Movimento move){
         boolean promocao = false;
         Peca peca = pecaSelecionada;
+        escolha = 'P';
         if(peca instanceof Peao && move.getCasaDestino().getLinha() == ((Peao) peca).getLinhaPromocao()){
             janelaEscolha();
             if(escolha == 0)
