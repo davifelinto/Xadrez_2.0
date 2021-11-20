@@ -39,34 +39,36 @@ public class Tabuleiro {
         }
     }
     //Metodos
-    public static void carregaTabuleiro(String n){
+    public static void carregaTabuleiro(String n) {
         char notacao[] = n.toCharArray();
-        boolean flag = true;
+        boolean flag = true, flag2 = true;
         int col = 0, lin = 0;
+        String nome1 = "", nome2 = "";
+
         ControlaJogo.setRoque_Rei_b(false);
         ControlaJogo.setRoque_Dama_b(false);
         ControlaJogo.setRoque_Rei_p(false);
         ControlaJogo.setRoque_Dama_p(false);
-        for(char i : notacao){
-            if(flag){
-                if(Character.isLetter(i)){
+        for (char i : notacao) {
+            if (flag) {
+                if (Character.isLetter(i)) {
                     Casa novaCasa = new Casa(lin, col, i);
                     casa[lin][col] = novaCasa;
                     casa[lin][col].setObj_peca(instanciaPeca(i, lin, col));
                     col++;
-                }else if(i == '/'){
+                } else if (i == '/') {
                     lin++;
                     col = 0;
-                }else if(Character.isDigit(i)){
+                } else if (Character.isDigit(i)) {
                     int max = col + Character.getNumericValue(i);
-                    for(; col < max; col++){
+                    for (; col < max; col++) {
                         Casa novaCasa = new Casa(lin, col, ' ');
                         casa[lin][col] = novaCasa;
                     }
-                }else if(i == ' '){
+                } else if (i == ' ') {
                     flag = false;
                 }
-            }else{
+            } else if (flag2) {
                 switch (i) {
                     case 'w':
                         ControlaJogo.setTurno_Branco(true);
@@ -86,15 +88,29 @@ public class Tabuleiro {
                     case 'q':
                         ControlaJogo.setRoque_Dama_p(true);
                         break;
+                    case '#':
+                        flag2 = false;
                     default:
                         break;
                 }
+            } else {
+                if (i != ' ') {//le os nomes, caso tenha na string
+                    nome2 = nome2 + i;
+                } else {
+                    nome1 = nome2;
+                    nome2 = null;
+                }
             }
+        }
+        if (!flag2){
+            ControlaJogo.jogador[0].setNome(nome1);
+            ControlaJogo.jogador[1].setNome(nome2);
+            Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
         }
         ControlaJogo.fen_Atual = n;
     }
     //Funcao para salvar a partida num arquivo txt
-    public static void gravaTabuleiro(String s) throws IOException {
+    public static void gravaTabuleiro(String s, String nome1, String nome2) throws IOException {
         File f = new File("partidaAnterior.txt");
         FileWriter w = new FileWriter("partidaAnterior.txt");
 
@@ -105,6 +121,10 @@ public class Tabuleiro {
         }
         try {
             w.write(s);
+            w.write("#");
+            w.write(nome1);
+            w.write(" ");
+            w.write(nome2);
             w.close();
         } catch (Exception e) {
             System.out.println("Erro ao salvar no arquivo: partidaAnterior.bin");
