@@ -199,7 +199,8 @@ public class Xadrez2 extends Canvas implements Runnable {
             @Override
             public void actionPerformed(ActionEvent e){
                 try {
-                    Tabuleiro.gravaTabuleiro(Tabuleiro.tabuleiroParaString(ControlaJogo.isTurno_Branco()));
+                    Tabuleiro.gravaTabuleiro(Tabuleiro.tabuleiroParaString(ControlaJogo.isTurno_Branco()),
+                            ControlaJogo.jogador[0].getNome(), ControlaJogo.jogador[1].getNome());
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
