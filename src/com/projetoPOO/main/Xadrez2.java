@@ -25,7 +25,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +62,7 @@ public class Xadrez2 extends Canvas implements Runnable {
     private boolean girar = false;
     public static MyInterface temaPecas;
     private boolean mouseDown = false;
+    private boolean isCalculando = false;
     private char escolha = 'P';
     @FunctionalInterface
     public interface MyInterface{
@@ -97,15 +97,14 @@ public class Xadrez2 extends Canvas implements Runnable {
         jdialog.setLayout(new FlowLayout());
         jdialog.setBounds(width/2, height/2 , 300, 200);
         jdialog.add(new JLabel("Nome do Jogador de Peças Brancas"));
-        JTextField jogador1 = new JTextField("Jogador 1");
+        JTextField jogador1 = new JTextField("");
         jdialog.add(jogador1);
         jogador1.setPreferredSize(new Dimension(150,20));              
         jdialog.add(new JLabel("Nome do Jogador de Peças Negras"));
-        JTextField jogador2 = new JTextField("Jogador 2");
+        JTextField jogador2 = new JTextField("");
         jdialog.add(jogador2);
         jogador2.setPreferredSize(new Dimension(150,20));
         JLabel warning = new JLabel("Não deixe o nome de nenhum jogador em branco");
-        warning.setVisible(false);
         jdialog.add(warning);
         JButton confirmar = new JButton("Confirmar");
         confirmar.addActionListener(new ActionListener(){ 
@@ -114,14 +113,18 @@ public class Xadrez2 extends Canvas implements Runnable {
                     String nome1 = jogador1.getText().replaceAll("\\s","");
                     String nome2 = jogador2.getText().replaceAll("\\s","");
                     if((nome1.equals("")) || (nome2.equals(""))){
-                        warning.setVisible(true);
+                        warning.setForeground(Color.RED);
+                        jdialog.validate();
                     }else{
-                        ControlaJogo.jogador[0] = new Jogador(true, nome1);
-                        ControlaJogo.jogador[1] = new Jogador(false, nome2);
-                        jdialog.dispose();
+                        Tabuleiro.setSetPecas(new ArrayList<>(), true);
+                        Tabuleiro.setSetPecas(new ArrayList<>(), false); 
+                        ControlaJogo.jogador[0] = new Jogador(true, jogador1.getText());
+                        ControlaJogo.jogador[1] = new Jogador(false, jogador2.getText());
                         Tabuleiro.carregaTabuleiro("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+                        pecaSelecionada = null;
                         setdePecas = Tabuleiro.getSetPecas(ControlaJogo.isTurno_Branco());
                         reiAtual = procuraRei(setdePecas);
+                        isCheque = false;
                         if(!gameStarted){
                             imprimeTabuleiro();
                             imprimeListaMovimento();
@@ -133,6 +136,7 @@ public class Xadrez2 extends Canvas implements Runnable {
                             textoMovimentos.setText("");
                             ControlaJogo.setPgn(new ArrayList<>());
                         }
+                        jdialog.dispose();
                     }
                 }
             }
@@ -345,8 +349,8 @@ public class Xadrez2 extends Canvas implements Runnable {
                 }
                 //Desenha peça arrastada
                 if(mouseDown && pecaSelecionada != null){
-                    int x = (int) MouseInfo.getPointerInfo().getLocation().getX()-330;
-                    int y = (int) MouseInfo.getPointerInfo().getLocation().getY()-175;    
+                    int x = (int) boardAndPieces.getMousePosition().getX()-32;
+                    int y = (int) boardAndPieces.getMousePosition().getY()-32;    
                     try {
                         g.drawImage(Tabuleiro.retornaPeca(pecaSelecionada.getPosicao().getPeca(), quadrado), 
                         x, y, null);
@@ -514,7 +518,8 @@ public class Xadrez2 extends Canvas implements Runnable {
             lastTime = now;
             if (delta>=1){
                 logic();
-                render();
+                if(!isCalculando)
+                    render();
                 frames++;
                 delta--;
             }
@@ -531,23 +536,15 @@ public class Xadrez2 extends Canvas implements Runnable {
         frame.repaint();//problema - quando o computador testa se a jogada é valida a peça aparece na casa testada;
     }
     // O que acontece durante a atualizacao de tela ou onde fica a "logica do jogo".
-    public Peca procuraRei(List<Peca> setdePecas){
-        Peca rei = null;
-        for(Peca procuraRei : setdePecas){
-            if(procuraRei instanceof Rei){
-                rei = procuraRei;
-                break;
-            }
-        }
-        return rei;
-    }
     public void logic(){
         if(pecaSelecionada != null && setdePecas.contains(pecaSelecionada)){
+            isCalculando = true;
             moveValido = pecaSelecionada.filtraLista(reiAtual);
             casasValidas = new ArrayList<>();
             for(Movimento teste : moveValido){
                 casasValidas.add(teste.getCasaDestino());    
             }
+            isCalculando = false;
         }
         if(iniciaMovimento){
             String cheque = "";
@@ -572,11 +569,61 @@ public class Xadrez2 extends Canvas implements Runnable {
                         break;
                 }
                 if(moveValido.isEmpty()){
-                    System.out.println("Chequemate");
-                    //perguntar se deseja jogar de novo
-                    isRunning = false;
+                    textoMovimentos.append("+");
+                    janelaFimDeJogo(new JLabel("Vitória de: " + ControlaJogo.jogador[Boolean.valueOf(ControlaJogo.isTurno_Branco()).compareTo(false)].getNome()));
                 }
                 cheque += "+";
+            }
+            else {//Se o rei não estiver em cheque verifica se a jogada provoca empate
+                //Empate por afogamento
+                for(Peca pecaVerifica : setdePecas){
+                    moveValido = pecaVerifica.filtraLista(reiAtual);
+                    if(!moveValido.isEmpty())
+                        break;
+                }
+                if(moveValido.isEmpty()){
+                    janelaFimDeJogo(new JLabel("Empate"));
+                }
+                //Regra dos 50 movimentos
+                if(ControlaJogo.getPgn().size() > 110){
+                    int i = 0, atual = 0;
+                    for(Movimento move : ControlaJogo.getPgn()){
+                        if(move.getPecaCapturada() == null || //nao capturei nenhuma peca
+                        move.getPecaCapturada().isCor_Branca() == move.getPecaMovimentada().isCor_Branca() ||
+                        !(move.getPecaMovimentada() instanceof Peao) ){//e não movi nenhum peao
+                            i++;
+                        }if(i >= 100 || ControlaJogo.getPgn().size() - atual < 100){
+                            break;
+                        }else{
+                            i = 0;
+                        }
+                        atual++;
+                    }
+                    if(i >= 100){
+                        janelaFimDeJogo(new JLabel("Empate"));
+                    }
+    
+                }
+                //Empate por insuficiencia material
+                if(ControlaJogo.jogador[0].getSuasPecas().size() < 3 && ControlaJogo.jogador[1].getSuasPecas().size() < 3){
+                    int contaQualidade[] = {0, 0};
+                    outerloop:
+                    for(int i = 0; i<2; i++){
+                        for(Peca peca : ControlaJogo.jogador[i].getSuasPecas()){
+                            if(peca instanceof Dama || peca instanceof Torre || peca instanceof Peao){
+                                contaQualidade[i] += 7;
+                                break outerloop;
+                            }
+                            if(peca instanceof Bispo)
+                                contaQualidade[i] += 3;
+                            else if(peca instanceof Cavalo )
+                                contaQualidade[i] += 2;
+                        }
+                    }
+                    if(contaQualidade[0] < 5 && contaQualidade[1] < 5){
+                        janelaFimDeJogo(new JLabel("Empate"));
+                    }    
+                }
             }
             if(escolha != 0){
                 if(!ControlaJogo.isTurno_Branco()){
@@ -586,43 +633,40 @@ public class Xadrez2 extends Canvas implements Runnable {
                 }
             }
         }
-        /**verificar empate
-        if(!isCheque){
-            //Empate por afogamento
-            for(Peca pecaVerifica : setdePecas){
-                moveValido = pecaVerifica.filtraLista(reiAtual);
-                if(!moveValido.isEmpty())
-                    break;
+    }
+    public Peca procuraRei(List<Peca> setdePecas){
+        Peca rei = null;
+        for(Peca procuraRei : setdePecas){
+            if(procuraRei instanceof Rei){
+                rei = procuraRei;
+                break;
             }
-            if(moveValido.isEmpty()){
-                System.out.println("Empate");
-                //perguntar se deseja jogar de novo
-                isRunning = false;
-            }
-            //Empate por insuficiencia material
-            //Regra dos 50 movimentos
-            if(getPgn().size() > 110){
-                int i = 0, atual = 0;
-                for(Movimento move : getPgn()){
-                    if(move.getPecaCapturada() == null || //nao capturei nenhuma peca
-                    move.getPecaCapturada().isCor_Branca() == move.getPecaMovimentada().isCor_Branca() ||
-                    !(move.getPecaMovimentada() instanceof Peao) //e não movi nenhum peao){
-                        i++;
-                    }if(i >= 100 || getPgn().size() - atual < 100){
-                        break;
-                    }else{
-                        i = 0;
-                    }
-                    atual++;
-                }
-                if(i >= 100){
-                    System.out.println("Empate");
-                    //perguntar se deseja jogar de novo
-                    isRunning = false;
+        }
+        return rei;
+    }
+    public void janelaFimDeJogo(JLabel comp){
+        JDialog jdialog = new JDialog(frame, true);
+        jdialog.setUndecorated(true);
+        jdialog.setSize(300, 50);
+        int x = (int) MouseInfo.getPointerInfo().getLocation().getX()-155;
+        int y = (int) MouseInfo.getPointerInfo().getLocation().getY()-50;
+        jdialog.setLocation(x, y);
+        JPanel pane = new JPanel();
+        pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS ));
+        JButton confirmar = new JButton("OK");
+        confirmar.addActionListener(new ActionListener(){ 
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    jdialog.dispose();
                 }
             }
-        } */
-    
+        );
+        pane.add(comp);
+        pane.add(confirmar);
+        comp.setAlignmentX(CENTER_ALIGNMENT);
+        confirmar.setAlignmentX(CENTER_ALIGNMENT);
+        jdialog.add(pane);
+        jdialog.setVisible(true);
     }
     public void movimenta(Movimento move){
         boolean promocao = false;
