@@ -41,9 +41,9 @@ public class Tabuleiro {
     //Metodos
     public static void carregaTabuleiro(String n) {
         char notacao[] = n.toCharArray();
-        boolean flag = true, flag2 = true;
+        boolean flag = true, flag2 = true, flag3 = true;
         int col = 0, lin = 0;
-        String nome1 = "", nome2 = "";
+        String nome1 = "", nome2 = "", movimentos = "";
 
         ControlaJogo.setRoque_Rei_b(false);
         ControlaJogo.setRoque_Dama_b(false);
@@ -93,24 +93,34 @@ public class Tabuleiro {
                     default:
                         break;
                 }
-            } else {
-                if (i != ' ') {//le os nomes, caso tenha na string
+            } else if (flag3) {
+                if (Character.isLetter(i) || Character.isDigit(i)) {//le os nomes, caso tenha na string
                     nome2 = nome2 + i;
-                } else {
+                } else if (i == ' '){
                     nome1 = nome2;
-                    nome2 = null;
+                    nome2 = "";
                 }
+                if (i == '%'){
+                    flag3 = false;
+                }
+            } else {
+                if (Character.isLetterOrDigit(i) || i == '\t')
+                    movimentos = movimentos + i;
+                else
+                    movimentos = movimentos + '\n' + i;
             }
         }
         if (!flag2){
+            System.out.println(movimentos);
             ControlaJogo.jogador[0].setNome(nome1);
             ControlaJogo.jogador[1].setNome(nome2);
             Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
+            Xadrez2.textoMovimentos.setText(movimentos);
         }
         ControlaJogo.fen_Atual = n;
     }
     //Funcao para salvar a partida num arquivo txt
-    public static void gravaTabuleiro(String s, String nome1, String nome2) throws IOException {
+    public static void gravaTabuleiro(String s, String nome1, String nome2, String movimentos) throws IOException {
         File f = new File("partidaAnterior.txt");
         FileWriter w = new FileWriter("partidaAnterior.txt");
 
@@ -125,6 +135,8 @@ public class Tabuleiro {
             w.write(nome1);
             w.write(" ");
             w.write(nome2);
+            w.write("%\n");
+            w.write(movimentos);
             w.close();
         } catch (Exception e) {
             System.out.println("Erro ao salvar no arquivo: partidaAnterior.bin");
@@ -137,9 +149,10 @@ public class Tabuleiro {
         try {
             File f = new File("partidaAnterior.txt");
             Scanner ler = new Scanner(f);
-            if (ler.hasNextLine()) {
-                tab = ler.nextLine();
+            while (ler.hasNextLine()) {
+                tab = tab + ler.nextLine();
             }
+            System.out.println(tab);
             ler.close();
             return tab;
         } catch (FileNotFoundException e) {
