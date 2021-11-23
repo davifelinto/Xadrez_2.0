@@ -41,6 +41,7 @@ public class Tabuleiro {
     //Metodos
     public static void carregaTabuleiro(String n) {
         char notacao[] = n.toCharArray();
+        String pecaBranca = "♙♖♘♗♕♔";
         boolean flag = true, flag2 = true, flag3 = true;
         int col = 0, lin = 0;
         String nome1 = "", nome2 = "", movimentos = "";
@@ -104,14 +105,13 @@ public class Tabuleiro {
                     flag3 = false;
                 }
             } else {
-                if (Character.isLetterOrDigit(i) || i == '\t')
-                    movimentos = movimentos + i;
-                else
+                if (pecaBranca.indexOf(i) != -1 || i == 'O')
                     movimentos = movimentos + '\n' + i;
+                else
+                    movimentos = movimentos + i;
             }
         }
         if (!flag2){
-            System.out.println(movimentos);
             ControlaJogo.jogador[0].setNome(nome1);
             ControlaJogo.jogador[1].setNome(nome2);
             Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
