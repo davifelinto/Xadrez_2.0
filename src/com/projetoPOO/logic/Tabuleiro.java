@@ -152,7 +152,6 @@ public class Tabuleiro {
             while (ler.hasNextLine()) {
                 tab = tab + ler.nextLine();
             }
-            System.out.println(tab);
             ler.close();
             return tab;
         } catch (FileNotFoundException e) {
