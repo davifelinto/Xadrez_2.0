@@ -40,7 +40,7 @@ public class Tabuleiro {
     }
     //Metodos
     public static void carregaTabuleiro(String n) {
-        char notacao[] = n.toCharArray();
+        char notacao[] = n.toCharArray(), anterior = 'a';
         String pecaBranca = "♙♖♘♗♕♔";
         boolean flag = true, flag2 = true, flag3 = true;
         int col = 0, lin = 0;
@@ -103,18 +103,21 @@ public class Tabuleiro {
                 }
                 if (i == '%'){
                     flag3 = false;
+                    ControlaJogo.jogador[0].setNome(nome1);
+                    ControlaJogo.jogador[1].setNome(nome2);
+                    Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
                 }
             } else {
-                if (pecaBranca.indexOf(i) != -1 || i == 'O')
+
+                if ((pecaBranca.indexOf(i) != -1 /*&& anterior != '='*/) || (i == 'O' && anterior != '-'))
                     movimentos = movimentos + '\n' + i;
                 else
                     movimentos = movimentos + i;
+
+                anterior = i;
             }
         }
-        if (!flag2){
-            ControlaJogo.jogador[0].setNome(nome1);
-            ControlaJogo.jogador[1].setNome(nome2);
-            Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
+        if (!flag3){
             Xadrez2.textoMovimentos.setText(movimentos);
         }
         ControlaJogo.fen_Atual = n;
