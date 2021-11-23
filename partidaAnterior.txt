@@ -1,1 +1,9 @@
-8/3P4/k7/8/8/4K3/8/8 w - - 0 1
+r1b1kb1r/ppp1qppp/2n5/4P3/4Q3/2N5/PPP2PPP/R1B1KB1R b KQkq#bbbbbb bbb%
+e4	e5
+♘f3	♞f6
+♘xe5	♞xe4
+♕e2	♛e7
+♕xe4	d6
+d4	dxe5
+dxe5	♞c6
+♘c3	

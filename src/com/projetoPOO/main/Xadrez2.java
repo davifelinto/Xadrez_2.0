@@ -187,7 +187,6 @@ public class Xadrez2 extends Canvas implements Runnable {
                 setdePecas = Tabuleiro.getSetPecas(ControlaJogo.isTurno_Branco());
                 reiAtual = procuraRei(setdePecas);
                 isCheque = reiAtual.verificaAtaque();
-                textoMovimentos.setText("");
                 //Carregar também o nome dos jogadores e o pgn (lista de movimentos)
                 System.out.println("Carregar");
             }
@@ -200,7 +199,7 @@ public class Xadrez2 extends Canvas implements Runnable {
             public void actionPerformed(ActionEvent e){
                 try {
                     Tabuleiro.gravaTabuleiro(Tabuleiro.tabuleiroParaString(ControlaJogo.isTurno_Branco()),
-                            ControlaJogo.jogador[0].getNome(), ControlaJogo.jogador[1].getNome());
+                            ControlaJogo.jogador[0].getNome(), ControlaJogo.jogador[1].getNome(), textoMovimentos.getText());
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
