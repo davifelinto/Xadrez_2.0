@@ -1,8 +1,10 @@
 package com.projetoPOO.logic;
 
+import java.io.Serializable;
+
 import com.projetoPOO.logic.Pecas.*;
 
-public class Movimento {
+public class Movimento implements Serializable{
 
     private Casa casaInicial;
     private Casa casaDestino;

@@ -1,6 +1,8 @@
 package com.projetoPOO.logic;
 
-public class Casa {
+import java.io.Serializable;
+
+public class Casa implements Serializable{
 
     private int linha;
     private int coluna;

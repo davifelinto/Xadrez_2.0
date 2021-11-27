@@ -2,10 +2,11 @@ package com.projetoPOO.logic;
 
 import com.projetoPOO.logic.Pecas.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Peca {
+public abstract class Peca implements Serializable{
 
     private Casa posicao;
     private boolean cor_Branca;

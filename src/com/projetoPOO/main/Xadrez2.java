@@ -25,7 +25,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.*;
@@ -178,17 +177,37 @@ public class Xadrez2 extends Canvas implements Runnable {
             public void actionPerformed(ActionEvent e){
                 //Zera o set antigo de peças para não duplicar as peças
                 Tabuleiro.setSetPecas(new ArrayList<>(), true);
-                Tabuleiro.setSetPecas(new ArrayList<>(), false); 
+                Tabuleiro.setSetPecas(new ArrayList<>(), false);
                 try {
                     Tabuleiro.carregaTabuleiro(Tabuleiro.leTabuleiro());
-                } catch (FileNotFoundException ex) {
+                    Tabuleiro.lePgn();
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+                if(!gameStarted){
+                    imprimeTabuleiro();
+                    imprimeListaMovimento();
+                    iniciaMouseListener();
+                    frame.validate();
+                    gameStarted = true;
+                }else{
+                    textoMovimentos.setText("");
+                    Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
+                }
+                //Escreve os movimentos salvos no pgn
+                boolean white = true;
+                for(Movimento movimentos : ControlaJogo.getPgn()){
+                    if(white){
+                        textoMovimentos.append(movimentos.getNotacao(movimentos) + "\t");
+                    }else{
+                        textoMovimentos.append(movimentos.getNotacao(movimentos) + "\n");
+                    }
+                    white = !white;
+                }
+                pecaSelecionada = null;
                 setdePecas = Tabuleiro.getSetPecas(ControlaJogo.isTurno_Branco());
                 reiAtual = procuraRei(setdePecas);
                 isCheque = reiAtual.verificaAtaque();
-                //Carregar também o nome dos jogadores e o pgn (lista de movimentos)
-                System.out.println("Carregar");
             }
         };
         openFEN.addActionListener(acaoOpen); 
@@ -199,12 +218,11 @@ public class Xadrez2 extends Canvas implements Runnable {
             public void actionPerformed(ActionEvent e){
                 try {
                     Tabuleiro.gravaTabuleiro(Tabuleiro.tabuleiroParaString(ControlaJogo.isTurno_Branco()),
-                            ControlaJogo.jogador[0].getNome(), ControlaJogo.jogador[1].getNome(), textoMovimentos.getText());
-                } catch (IOException ex) {
+                            ControlaJogo.jogador[0].getNome(), ControlaJogo.jogador[1].getNome());
+                    Tabuleiro.gravaPgn();
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-                //Salvar também o nome dos jogadores e o pgn (lista de movimentos)
-                System.out.println("implementado Salvar");
             }   
         };
         saveFEN.addActionListener(acaoSave); 
@@ -379,15 +397,6 @@ public class Xadrez2 extends Canvas implements Runnable {
 
         //Dentro da lista de Scroll
         textoMovimentos = new JTextArea();
-        boolean white = true;
-        for(Movimento movimentos : ControlaJogo.getPgn()){
-            if(white){
-                textoMovimentos.append(movimentos.getNotacao(movimentos) + "\t");
-            }else{
-                textoMovimentos.append(movimentos.getNotacao(movimentos) + "\n");
-            }
-            white = !white;
-        }
         textoMovimentos.setEditable(false);
         listScroller.setViewportView(textoMovimentos);
         mainPanel.add(listPane);
@@ -533,7 +542,7 @@ public class Xadrez2 extends Canvas implements Runnable {
     }
     // Metodo que controla a parte grafica do jogo.
     public void render(){
-        frame.repaint();//problema - quando o computador testa se a jogada é valida a peça aparece na casa testada;
+        frame.repaint();
     }
     // O que acontece durante a atualizacao de tela ou onde fica a "logica do jogo".
     public void logic(){

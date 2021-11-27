@@ -2,12 +2,17 @@ package com.projetoPOO.logic;
 
 import com.projetoPOO.logic.Pecas.*;
 import com.projetoPOO.main.ControlaJogo;
+import com.projetoPOO.main.Jogador;
 import com.projetoPOO.main.Xadrez2;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -40,11 +45,10 @@ public class Tabuleiro {
     }
     //Metodos
     public static void carregaTabuleiro(String n) {
-        char notacao[] = n.toCharArray(), anterior = 'a';
-        String pecaBranca = "♙♖♘♗♕♔";
+        char notacao[] = n.toCharArray();
         boolean flag = true, flag2 = true, flag3 = true;
         int col = 0, lin = 0;
-        String nome1 = "", nome2 = "", movimentos = "";
+        String nome1 = "", nome2 = "";
 
         ControlaJogo.setRoque_Rei_b(false);
         ControlaJogo.setRoque_Dama_b(false);
@@ -103,30 +107,17 @@ public class Tabuleiro {
                 }
                 if (i == '%'){
                     flag3 = false;
-                    ControlaJogo.jogador[0].setNome(nome1);
-                    ControlaJogo.jogador[1].setNome(nome2);
-                    Xadrez2.nomeJogadores.setText(ControlaJogo.jogador[0].getNome() + "\t vs \t" + ControlaJogo.jogador[1].getNome());
+                    ControlaJogo.jogador[0] = new Jogador(true, nome1);
+                    ControlaJogo.jogador[1] = new Jogador(false, nome2);
                 }
-            } else {
-
-                if ((pecaBranca.indexOf(i) != -1 /*&& anterior != '='*/) || (i == 'O' && anterior != '-'))
-                    movimentos = movimentos + '\n' + i;
-                else
-                    movimentos = movimentos + i;
-
-                anterior = i;
             }
-        }
-        if (!flag3){
-            Xadrez2.textoMovimentos.setText(movimentos);
         }
         ControlaJogo.fen_Atual = n;
     }
     //Funcao para salvar a partida num arquivo txt
-    public static void gravaTabuleiro(String s, String nome1, String nome2, String movimentos) throws IOException {
+    public static void gravaTabuleiro(String s, String nome1, String nome2) throws IOException {
         File f = new File("partidaAnterior.txt");
         FileWriter w = new FileWriter("partidaAnterior.txt");
-
         try {
             f.createNewFile();
         } catch (Exception e) {
@@ -139,7 +130,6 @@ public class Tabuleiro {
             w.write(" ");
             w.write(nome2);
             w.write("%\n");
-            w.write(movimentos);
             w.close();
         } catch (Exception e) {
             System.out.println("Erro ao salvar no arquivo: partidaAnterior.bin");
@@ -164,6 +154,31 @@ public class Tabuleiro {
         // Se não tiver arquivo retorna um jogo novo
         return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+    }
+    
+    public static void gravaPgn(){
+        try{
+            FileOutputStream writeData = new FileOutputStream("partidaAnterior.pgn");
+            ObjectOutputStream writeStream = new ObjectOutputStream(writeData);
+            writeStream.writeObject(ControlaJogo.getPgn());
+            writeStream.flush();
+            writeStream.close();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void lePgn(){
+        try {
+            FileInputStream readData = new FileInputStream("partidaAnterior.pgn");
+            ObjectInputStream readStream = new ObjectInputStream(readData);
+            @SuppressWarnings("unchecked")//Remove o warning da linha de baixo
+            List<Movimento> pgn = (List<Movimento>) readStream.readObject();
+            ControlaJogo.setPgn(pgn);
+            readStream.close();
+
+        } catch (IOException  | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
     // Funcao assessoria pra salvar em arquivo. Transforma tabuleiro em string FEN
     public static String tabuleiroParaString(boolean isTurno_Branco){
